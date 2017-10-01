@@ -1,11 +1,13 @@
 (use 'overtone.live)
 
 
+
+
 (definst ss [freq1 100] (* (sin-osc freq1) (saw freq1)) )
 
-(use 'shadertone.tone)
+(use 'shadertone.tone :reload-all)
 
-
+(use 'shadertone.shader :reload-all)
 
 (defsynth vvv
   [freq1 0.3 freq2 0.29]
@@ -21,12 +23,38 @@
 
 
 
-(shadertone.tone/start "sine_dance.glsl" :width 2000 :textures ["L1030941.JPG"]
+(shadertone.tone/start "sine_dance.glsl" :width 3000 :height 2000
                        :user-data {"iA" (atom {:synth v :tap "a"})
-                                   "iB" (atom {:synth v :tap "b"})})
+                                 "iB" (atom {:synth v :tap "b"})})
+
+
+
+(shadertone.shader/start "simpletexwebcam.glsl")
+
 
 (vvv)
 
 
 (definst beat [f1 1] (* 10.0(sin-osc f1) (saw 0.5)))
-(beat)
+
+(ctl beat :f1 20)
+
+
+(require '[leipzig.melody :refer [all bpm is phrase tempo then times where with]])
+
+
+(def melody (phrase [1 2 2 3 2 1]
+                    [1 1  1 1 1 1]))
+
+
+(require '[leipzig.live :as live]
+         '[leipzig.scale :as scale])
+
+
+(definst beeb [freq 440 dur 0.1]
+  (-> freq
+   saw
+   (* (env-gen (perc 0.05 dur) :action FREE))))
+
+
+(defmethod live/play-note :default )
