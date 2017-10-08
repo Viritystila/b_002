@@ -10,20 +10,21 @@ uniform float iB;
 
 void main(void)
 {
-      float a  = (iA - 300.0)/50.0/2.0 + 0.5;
-float b = (iB - 300.0)/100.0/2.0 + 0.5;
- vec2 uv = a*3.0*(gl_FragCoord.xy/iResolution.xy) - 1.0;
+    float a  = (iA - 300.0)/50.0/2.0 + 0.5;
+    float b = (iB - 300.0)/100.0/2.0 + 0.5;
+    vec2 uv = a*3.0*(gl_FragCoord.xy/iResolution.xy) - 1.0;
+    vec2 uvcam=b*(gl_FragCoord.xy/iResolution.xy);
     // equvalent to the video's spec.y, I thinkq
     float spec_y = 0.01 + 5.0*iOvertoneVolume;
     float col = 0.0;
-    uv.x += sin(uv.y*1.5)*spec_y;
+    uv.x += sin(uv.x*1.5)*spec_y;
     col += abs(0.66/uv.x) * spec_y;
-    vec4 c1 = texture2D(iChannel0,gl_FragCoord.xy/iResolution.xy);
-    vec4 c2 = texture2D(iChannel1, gl_FragCoord.xy/iResolution.xy);
+    vec4 c1 = texture2D(iCam1,uvcam);
+    vec4 c2 = texture2D(iCam0, uvcam);
     vec4 ss= vec4(col, col, col, 21.0);
-    //c1.x=uv.x;
+    c1.x=uv.x;
     vec4 c = mix(c1,ss,iA/iB); // alpha blend between two textures
-    vec4 cm=mix(c, c1, 0.09);
+    vec4 cm=mix(c, c2, b);
     gl_FragColor = cm;
     //float offset = texture(iChannel0, 18.0).r * 0.5;
 

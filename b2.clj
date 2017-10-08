@@ -3,11 +3,12 @@
 
 
 
+
 (definst ss [freq1 100] (* (sin-osc freq1) (saw freq1)) )
 
 (use 'shadertone.tone :reload-all)
 
-(use 'shadertone.shader :reload-all)
+;;(use 'shadertone.shader :reload-all)
 
 (defsynth vvv
   [freq1 0.3 freq2 0.29]
@@ -23,19 +24,21 @@
 
 
 
-(shadertone.tone/start "sine_dance.glsl" :width 3000 :height 2000
+(shadertone.tone/start "sine_dance.glsl" :width 3000 :height 2000 :cams [1]
                        :user-data {"iA" (atom {:synth v :tap "a"})
                                  "iB" (atom {:synth v :tap "b"})})
 
 
 
-(shadertone.shader/start "simpletexwebcam.glsl")
+;;(shadertone.shader/start "simpletexwebcam.glsl")
 
 
 (vvv)
 
 
 (definst beat [f1 1] (* 10.0(sin-osc f1) (saw 0.5)))
+
+(beat)
 
 (ctl beat :f1 20)
 
@@ -53,8 +56,16 @@
 
 (definst beeb [freq 440 dur 0.1]
   (-> freq
-   saw
+   sin-osc
    (* (env-gen (perc 0.05 dur) :action FREE))))
 
+(beeb)
 
-(defmethod live/play-note :default )
+
+(defmethod live/play-note :default  [{midi :pitch seconds :duration}]
+  (-> midi overtone.live/midi->hz ( / 3) (beeb seconds)))
+
+
+(->> melody (tempo (bpm 90))
+     (where :pitch (comp scale/C scale/major))
+     live/play)
