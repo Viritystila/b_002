@@ -24,13 +24,13 @@
 
 
 
-(shadertone.tone/start "sine_dance.glsl" :width 3000 :height 2000 :cams [1]
+(shadertone.tone/start "sine_dance.glsl" :width 3000 :height 2000 :cams [3 4]
                        :user-data {"iA" (atom {:synth v :tap "a"})
                                  "iB" (atom {:synth v :tap "b"})})
 
 
 
-;;(shadertone.shader/start "simpletexwebcam.glsl")
+(shadertone.shader/stop)
 
 
 (vvv)
@@ -47,7 +47,7 @@
 
 
 (def melody (phrase [1 2 2 3 2 1]
-                    [1 1  1 1 1 1]))
+                    [2 1  1 1 1 1]))
 
 
 (require '[leipzig.live :as live]

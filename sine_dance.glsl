@@ -19,12 +19,12 @@ void main(void)
     float col = 0.0;
     uv.x += sin(uv.x*1.5)*spec_y;
     col += abs(0.66/uv.x) * spec_y;
-    vec4 c1 = texture2D(iCam1,uvcam);
-    vec4 c2 = texture2D(iCam0, uvcam);
+    vec4 c1 = texture2D(iCam3,uvcam);
+    vec4 c2 = texture2D(iCam4, uvcam);
     vec4 ss= vec4(col, col, col, 21.0);
     c1.x=uv.x;
     vec4 c = mix(c1,ss,iA/iB); // alpha blend between two textures
-    vec4 cm=mix(c, c2, b);
+    vec4 cm=mix(c, c2, 0.5);
     gl_FragColor = cm;
     //float offset = texture(iChannel0, 18.0).r * 0.5;
 
