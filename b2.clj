@@ -15,15 +15,51 @@
         ]
     (out 0 (pan2 (* amp src sawsrc)))))
 
-(defsynth kick2 [amp 1 freq 80 fw 10 phase1 3.24 bpm 120]
-  (let [src (sin-osc freq phase1)
-        sawsrc (saw fw)
-        env (env-gen (perc (* 1 1) (* 1 1)) :action FREE)
-        kickenv (decay (t2a (demand (impulse:kr (/ bpm 10)) 0 (dseq [1] 1))) (/ 1 10))
+(defsynth kick2 [amp 7 freq 80 fw 10 phase1 3.24 bpm 120]
+  (let [env (env-gen (perc (* 0.1 1) (* 0.1 1)) :action FREE)
+        kickenv (decay (t2a (demand (impulse:kr (/ bpm 10)) 0 (dseq [1 0 1 0 1] 1))) (/ 1 10))
+        kick1 (* (* kickenv amp) (sin-osc (+ 40 (* kickenv kickenv kickenv 200))))
+        kickdel (delay-n kick1 0.05 0.05)
         ]
-   (out 0 (pan2 (* (* kickenv 7) (sin-osc (+ 40 (* kickenv kickenv kickenv 200 )))) ))))
+   (out 0 (pan2 (+ (* 0.1 kickdel) kick1)))))
 
 (def kickf2 (kick2))
+
+(defsynth kick3 [amp 7 freq 80 fw 10 phase 3.14 bpm 120 a 0.3 d 0.3 s 0.3 r 0.3 l 1 c 1 dur 5]
+  (let [env (env-gen (perc 1 1) :action FREE)
+        freq-env (env-gen (adsr a d s r l c ) (line:kr 1.0 0.0 dur) :action NO-ACTION)
+        kickenv (decay (t2a (demand (impulse:kr (* 100 freq-env)) 1 (dseq [1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1] 2))) 0.1)
+        kick (* (* kickenv amp) (sin-osc (+ 40 (* kickenv kickenv kickenv))))
+        ]
+    (out 0 (pan2 kick))))
+
+(def kickf3 (kick3))
+
+(stop)
+
+(defsynth beepflanger [freq 44 amp 0.5 offset 3 rate 4 depth 0.5 delay 0.3]
+  (let [src (* (env-gen (perc 0.2 0.4) 1 :action FREE) (sin-osc [freq (+ freq offset)]))
+        lfo (* depth (abs (sin-osc)))
+        del (delay-n src 1 (+ lfo delay))
+        ]
+    (out 0 (pan2 (distort (* amp (+ (* 0.2 del) (* 1.9 src))))))))
+
+(def bf (beepflanger))
+
+(defsynth freqEnv [freq 440 amp 0.5  a 0.1 d 0.2 s 0.1 r 0.05 l 1 c -1 dur 0.5]
+  (let [freq-env (env-gen (adsr a d s r l c) (line:kr 1.0 0.0 dur) :action FREE)
+        src (sin-osc (* freq freq-env))
+        del (delay-n src 0.25)]
+    (out 0 (pan2 (* amp (+ src (* 0.1 del)))))))
+
+(def freqEnv1 (freqEnv))
+
+
+
+(kill freqEnv1)
+
+
+(stop)
 
 (print kickf2)
 
@@ -228,9 +264,12 @@
 
 (def beatnote_d (beatnote))
 
-(def pats {;beatnote [1 1 0 1 0 1 1 0 0 0 0 1 0]
-           ;overpad  [1 0 0 0 0 0 0 0 0 0 0 0 0]
-           ;kick     [1 1 1 1 1 1 1 1 1 1 1 1 1]
+
+(metro-bpm metro 1)
+
+(def pats {beatnote [1 1 0 1 0 1 1 0 0 0 0 1 0]
+           overpad  [1 0 0 0 0 0 0 0 0 0 0 0 0]
+           kick2    [1 1 1 1 1 1 1 1 1 1 1 1 1]
            beep     [1 0 0 0 1 0 0 0 0 1 1 0 0]})
 
 (def live-pats (atom pats))
@@ -256,6 +295,8 @@
 
 (live-sequencer (+ 200 (now)) 200 live-pats)
 
+(stop)
+
 (def aBeat {:freq 10})
 
 (def bBeat {:freq 75})
@@ -268,6 +309,8 @@
 
 (def beepAmp2 {:amp 0.3})
 
+(stop)
+
 (swap! live-pats assoc beatnote [aBeat bBeat 0 1 aBeat bBeat 1 0])
 
 (swap! live-pats assoc beatnote [0])
@@ -276,8 +319,9 @@
 
 (swap! live-pats assoc overpad [0])
 
+(swap! live-pats assoc kick2 [1 0 0 0 1 1 1 0 1 0 1 0 1])
 
-(swap! live-pats assoc beep [0 beepAmp2  beepAmp 0 1 beepAmp2 0  1 1])
+(swap! live-pats assoc beep [0])
 
 (stop)
 
