@@ -1,10 +1,31 @@
 (ns b2 (:use [overtone.live]) (:require [shadertone.tone :as t]))
 
-(t/start "./b5.glsl" :cams [0])
+(t/start "./b2.glsl" :cams [0 1])
 
-(t/start "./b5.glsl" :width 1920 :height 1080 :videos ["./jkl.mp4" "./metro.mp4"] :cams [0 1]  :user-data {"iA" (atom {:synth kickf :tap "kicksaw"})})
+(t/start "./b2.glsl" :width 1920 :height 1080 :videos ["./jkl.mp4" "./metro.mp4"] :cams [0 1]  :user-data {"iA" (atom {:synth dummyf :tap "a"}) "iB" (atom {:synth dummyf :tap "b"}) "iC" (atom {:synth dummyf :tap "c"}) })
+
+
+
+(defsynth dummy [a 0 b 1 c 1]
+  (let [av a
+        bv b
+        cv c
+        _ (tap "a" 60 a)
+        _ (tap "b" 60 b)
+        _ (tap "c" 60 (a2k (sin-osc c)))
+        ]
+    (out 0 0)))
+
+(def dummyf (dummy))
+
+(ctl dummyf :a 1)
+
+(ctl dummyf :b 200)
+
+(ctl dummf :c  40)
 
       ;(t/s.post-start-cam 0)
+(stop)
 
 (def metro (metronome 120))
 
@@ -14,6 +35,8 @@
         _ (tap "kicksaw" 60 (a2k sawsrc))
         ]
     (out 0 (pan2 (* amp src sawsrc)))))
+
+(def kickf (kick))
 
 (defsynth kick2 [amp 7 freq 80 fw 10 phase1 3.24 bpm 120]
   (let [env (env-gen (perc (* 0.1 1) (* 0.1 1)) :action FREE)
@@ -25,13 +48,13 @@
 
 (def kickf2 (kick2))
 
-(defsynth kick3 [amp 7 freq 80 fw 10 phase 3.14 bpm 120 a 0.3 d 0.3 s 0.3 r 0.3 l 1 c 1 dur 5]
+(defsynth kick3 [amp 7 freq 80 fw 10 phase 3.14 bpm 120 a 0.1 d 0.1 s 0.4 r 0.1 l 3 c -1 dur 5]
   (let [env (env-gen (perc 1 1) :action FREE)
-        freq-env (env-gen (adsr a d s r l c ) (line:kr 1.0 0.0 dur) :action NO-ACTION)
-        kickenv (decay (t2a (demand (impulse:kr (* 100 freq-env)) 1 (dseq [1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1] 2))) 0.1)
+        freq-env (env-gen (adsr a d s r l c ) (line:kr 1.0 1.0 dur) :action NO-ACTION)
+        kickenv (decay (t2a (demand (impulse:kr (* 20 freq-env)) 1 (dseq [1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1] 5))) 0.1)
         kick (* (* kickenv amp) (sin-osc (+ 40 (* kickenv kickenv kickenv))))
         ]
-    (out 0 (pan2 kick))))
+    (out 0 (pan2 (* kick freq-env)))))
 
 (def kickf3 (kick3))
 
@@ -50,7 +73,7 @@
   (let [freq-env (env-gen (adsr a d s r l c) (line:kr 1.0 0.0 dur) :action FREE)
         src (sin-osc (* freq freq-env))
         del (delay-n src 0.25)]
-    (out 0 (pan2 (* amp (+ src (* 0.1 del)))))))
+    (out 0 (pan2 (* amp (+ (distort src) (* 0.1 del)))))))
 
 (def freqEnv1 (freqEnv))
 
@@ -105,7 +128,7 @@
 
 (kill kickf2)
 
-(ctl kickf :amp 0.20)
+(ctl kickf :amp 0.70)
 
 
 (ctl kickf :phase1 3.14)
@@ -113,7 +136,7 @@
 (ctl kickf :freq 60)
 
 
-(ctl kickf :fw 0.5)
+(ctl kickf :fw 1.5)
 
 
 
@@ -269,7 +292,7 @@
 
 (def pats {beatnote [1 1 0 1 0 1 1 0 0 0 0 1 0]
            overpad  [1 0 0 0 0 0 0 0 0 0 0 0 0]
-           kick2    [1 1 1 1 1 1 1 1 1 1 1 1 1]
+           kick3    [1 1 1 1 1 1 1 1 1 1 1 1 1]
            beep     [1 0 0 0 1 0 0 0 0 1 1 0 0]})
 
 (def live-pats (atom pats))
@@ -297,9 +320,9 @@
 
 (stop)
 
-(def aBeat {:freq 10})
+(def aBeat {:freq 10 :amp 10})
 
-(def bBeat {:freq 75})
+(def bBeat {:freq 75 :amp 20})
 
 (def opAmp {:amp 0.1})
 
@@ -309,19 +332,25 @@
 
 (def beepAmp2 {:amp 0.3})
 
+(def kickf3_c {})
+
 (stop)
 
 (swap! live-pats assoc beatnote [aBeat bBeat 0 1 aBeat bBeat 1 0])
-
+q
 (swap! live-pats assoc beatnote [0])
 
 (swap! live-pats assoc overpad [opAmp 0  opAmp2 0 opAmp 0 0 opAmp])
 
 (swap! live-pats assoc overpad [0])
 
-(swap! live-pats assoc kick2 [1 0 0 0 1 1 1 0 1 0 1 0 1])
+(swap! live-pats assoc kick [0])
 
-(swap! live-pats assoc beep [0])
+(swap! live-pats assoc kick3 [1 1 0 0 1 1 1 1 1 1 1 1 1 1 1 1  1 0 0 0 0 0  1 1 1 1 1 ])
+q
+(swap! )
+
+(swap! live-pats assoc beep [1 1 1 0 0 0 0  1 1 1 1 ])
 
 (stop)
 
